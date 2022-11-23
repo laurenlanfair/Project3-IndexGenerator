@@ -50,13 +50,6 @@ int main()
         while (getline(file, line)) {
             newLine = true;
             istringstream stream(line);
-//            stream >> quoted(word);                         //removes quotes
-//            if (newLine && word == "Chapter" || word == "CHAPTER") {      //if chapter, get chapter + chapter num
-//                string number;
-//                stream >> number;
-//                word += " " + number;
-//                chapters.push_back(make_pair(word, lineNum));      //push onto chapters vector
-//            }
 
             while (stream >> quoted(word)) {
                 if (newLine && (word == "Chapter" || word == "CHAPTER")) {      //if chapter, get chapter + chapter num
