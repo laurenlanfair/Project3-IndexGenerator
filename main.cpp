@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include "MapIndex.h"
+#include "UnorderedMapIndex.h"
 
 using namespace std;
 
@@ -86,6 +87,9 @@ int main()
     auto stop = chrono::high_resolution_clock::now();
     auto duration = duration_cast<chrono::microseconds>(stop - start);
     cout << "TIME FOR MAP CREATION: " << duration.count() << " microseconds" << endl;
+    
+    UnorderedMapIndex wordIdx = UnorderedMapIndex(words);
+    wordIdx.printIndex();
 
 
 /* Here I just created sample outputs, one directly from the vector and then one from my map
