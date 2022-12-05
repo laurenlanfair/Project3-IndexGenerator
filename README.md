@@ -3,7 +3,7 @@
 This is our Automatic Index Generator. 
 
 Both indexes will automatically be created:
-  MapIndex.txt
+  MapIndex.txt, &  
   UnorderedMapIndex.txt
   
 The program will print the execution times for creating both files.
