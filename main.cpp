@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
+#include <chrono>
 #include "MapIndex.h"
 #include "UnorderedMapIndex.h"
 
@@ -10,9 +12,15 @@ using namespace std;
 
 int main()
 {
-    cout << "Choose file to open: " << endl;
-    cout << "1. Moby Dick by Herman Melville \n"
-            "2. David Copperfield by Charles Dickens \n";
+    cout << "************************************************" << endl;      //print proj name + authors
+    cout << "*                                              *" << endl;
+    cout << "*          AUTOMATIC INDEX GENERATOR           *" << endl;
+    cout << "*                                              *" << endl;
+    cout << "*   Created by: Lauren Lanfair & Rohan Singh   *" << endl;
+    cout << "************************************************" << endl;
+    cout << "\nChoose file to open: " << endl;                              //which file to index
+    cout << "   1. Moby Dick by Herman Melville \n"
+            "   2. David Copperfield by Charles Dickens \n";
     string input;
     cin >> input;
     string filepath;
@@ -33,9 +41,9 @@ int main()
     string title;
     string author;
     int lineNum = 1;
-    vector<pair<string, int>> words;
-    vector<pair<string, int>> chapters;
-    bool newLine = true;
+    vector<pair<string, int>> words;             //vector of words: word -> line found
+    vector<pair<string, int>> chapters;          //vector of chapters: "chapter" + number -> line found
+    bool newLine;
 
     if(!file.is_open()){
         cout << "file not open. check working directory in ide" << endl;
@@ -46,7 +54,7 @@ int main()
         getline(file, line);                //empty line
         getline(file, author);
         getline(file, line);                //empty line
-        lineNum += 4;
+        lineNum += 4;                              //increment line counter for lines gotten
 
         while (getline(file, line)) {
             newLine = true;
@@ -66,69 +74,168 @@ int main()
                     if (ispunct(word[j]) && word[j] != '/') {
                         word.erase(j--, 1);                 //removes punctuation
                     }
-                    else w += tolower(word[j]);                  //makes all lowercase
+                    else w += char(tolower(word[j]));                  //makes all lowercase
                 }
                 if(w.find(' ')){                      //if string is multiple words (after punctuation is removed)
                     istringstream stream2(w);         //separate it and add each word to the vector
                     string w2;
                     while(stream2 >> w2){
-                        words.push_back(make_pair(w2, lineNum));
+                        words.push_back(make_pair(w2, lineNum));    //add to words vector
                     }
                 }
-                else words.push_back(make_pair(w, lineNum));
+                else words.push_back(make_pair(w, lineNum));        //add to words vector
             }
             lineNum++;
         }
     }
     file.close();
 
-    auto start = chrono::high_resolution_clock::now();
+    int max = 0;                                        //this section for formatting purposes
+    for(auto & w : words){
+        if(w.first.length() > max){
+            max = int(w.first.length());
+        }
+    }
+    max++;
+
+    cout << "************************************************" << endl;
+
+    /* ===============MAP INDEX FILE CREATION + TIMER=============== */
+
+    auto start = chrono::high_resolution_clock::now();   //start timer for MapIndex.txt creation
     map<string, set<int>> indexMap = MapIndex(words).getMap();
-    auto stop = chrono::high_resolution_clock::now();
-    auto duration = duration_cast<chrono::microseconds>(stop - start);
-    cout << "TIME FOR MAP CREATION: " << duration.count() << " microseconds" << endl;
-    
+
+    /*_CREATE FILE FROM MAP_*/
+    ofstream mapFile;
+    mapFile.open("Output/MapIndex.txt");                //print title, author, word count, and unique word count
+    mapFile << "TITLE: " << title << "\n";
+    mapFile << "AUTHOR: " << author << "\n";
+    mapFile << "WORD COUNT: " << words.size() << "\n";
+    mapFile << "NUMBER OF UNIQUE WORDS: " << indexMap.size() << "\n";
+
+    mapFile << setfill('-') << setw(max + max + 8) << "\n";
+    mapFile << setfill(' ');
+
+    mapFile << "CHAPTER INDEX:\nCHAPTER" << setw(max - 3) << "| LINE" << "\n";
+    mapFile << setfill('-') << setw(max + max + 8) << "\n";
+    mapFile << setfill(' ');
+
+    for(auto& c : chapters){                                //print out chapters + lines
+        mapFile << c.first << setw(int(max - c.first.length())) << ": " << c.second << "\n";
+    }
+
+    mapFile << setfill('-') << setw(max + max + 8) << "\n";
+    mapFile << setfill(' ');
+
+    mapFile << "INDEX:\nWORD" << setw(max) << "| LINE" << "\n";
+    mapFile << setfill('-') << setw(max + max + 8) << "\n";
+    mapFile << setfill(' ');
+
+
+    for(auto& i : indexMap){                                    //print words + line numbers
+        mapFile << i.first << setw(int(max - i.first.length())) << ": ";
+        for(auto j : i.second){
+            mapFile << j << " ";
+        }
+        mapFile << "\n";
+    }
+
+    auto stop = chrono::high_resolution_clock::now();                 //stop timer
+    auto duration = chrono::duration_cast<chrono::nanoseconds>(stop - start);
+
+
+    /* ===============UNORDERED_MAP INDEX FILE CREATION + TIMER=============== */
+
+    auto start2 = chrono::high_resolution_clock::now();  //start timer for UnorderedMapIndex.txt creation
     UnorderedMapIndex wordIdx = UnorderedMapIndex(words);
-    wordIdx.printIndex();
+    unordered_map<string, set<int>> unorderedMapIndex = UnorderedMapIndex(words).getMap();
+    vector<string> orderedKeys = wordIdx.getKeys();                     //call to sort function
 
+    /*_CREATE FILE FROM UNORDERED MAP_*/
+    ofstream unorderedMapFile;
+    unorderedMapFile.open("Output/UnorderedMapIndex.txt");  //print title, author, word count, and unique word count
+    unorderedMapFile << "TITLE: " << title << "\n";
+    unorderedMapFile << "AUTHOR: " << author << "\n";
+    unorderedMapFile << "WORD COUNT: " << words.size() << "\n";
+    unorderedMapFile << "NUMBER OF UNIQUE WORDS: " << unorderedMapIndex.size() << "\n";
 
-/* Here I just created sample outputs, one directly from the vector and then one from my map
-   so I could see what was going on */
+    unorderedMapFile << setfill('-') << setw(max + max + 8) << "\n";
+    unorderedMapFile << setfill(' ');
 
-//    ofstream index;
-//    index.open("src/NotRealIndex.txt");
-//
-//    index << "TITLE: " << title << "\n";
-//    index << "AUTHOR: " << author << "\n";
-//    index << "WORD COUNT: " << words.size() << "\n";
-//    index << "Word, Line: " << "\n";
-//
-//    for(auto& i : words){
-//        index << i.first << ", " << i.second << "\n";
-//    }
-//
-//
-//
-//    ofstream otherindex;
-//    otherindex.open("src/MAPINDEX.txt");
-//    otherindex << "TITLE: " << title << "\n";
-//    otherindex << "AUTHOR: " << author << "\n";
-//    otherindex << "WORD COUNT: " << words.size() << "\n";
-//    otherindex << "Chapter Index: " << "\n";
-//
-//    for(auto& c : chapters){
-//        otherindex << c.first << " : " << c.second << "\n";
-//    }
-//
-//    otherindex << "Word Index: " << "\n";
-//
-//    for(auto& i : indexMap){
-//        otherindex << i.first << " : ";
-//        for(auto j : i.second){
-//            otherindex << j << " ";
-//        }
-//        otherindex << "\n";
-//    }
+    unorderedMapFile << "CHAPTER INDEX:\nCHAPTER" << setw(max - 3) << "| LINE" << "\n";
+    unorderedMapFile << setfill('-') << setw(max + max + 8) << "\n";
+    unorderedMapFile << setfill(' ');
 
+    for(auto& c : chapters){                                    //print chapters + lines
+        unorderedMapFile << c.first << setw(int(max - c.first.length())) << ": " << c.second << "\n";
+    }
+
+    unorderedMapFile << setfill('-') << setw(max + max + 8) << "\n";
+    unorderedMapFile << setfill(' ');
+
+    unorderedMapFile << "INDEX:\nWORD" << setw(max) << "| LINE" << "\n";
+    unorderedMapFile << setfill('-') << setw(max + max + 8) << "\n";
+    unorderedMapFile << setfill(' ');
+
+    for(auto& i : orderedKeys){              //iterate through ordered keys, find values in unordered_map
+        unorderedMapFile << i << setw(int(max - i.length())) << ": ";   //print words + line numbers
+        for(auto j : unorderedMapIndex[i]){
+            unorderedMapFile << j << " ";
+        }
+        unorderedMapFile << "\n";
+    }
+
+    auto stop2 = chrono::high_resolution_clock::now();          //stop timer
+    auto duration2 = chrono::duration_cast<chrono::nanoseconds>(stop2 - start2);
+
+    /* ===============END OF FILE CREATIONS=============== */
+
+    cout << "Files created in Output folder: " << endl;                       //display files created
+    cout << "       'MapIndex.txt'\n"
+            "       'UnorderedMapIndex.txt'" << endl;
+    cout << "************************************************" << endl;
+
+    //print durations for creation of each file
+    cout << "\nTIME FOR MAPINDEX CREATION:           " << duration.count() << " nanoseconds" << endl;
+    cout << "TIME FOR UNORDEREDMAPINDEX CREATION: " << duration2.count() << " nanoseconds" << endl;
+    cout << "\n************************************************" << endl;
+
+    cout << "\nSearch for a word (or enter 0 to exit program): " << endl;     //search feature, 0 to end program
+    string inputWord;                                                         //(using unordered map bc faster search)
+    cin >> inputWord;
+
+    if (inputWord == "0") {         //end program
+        return 0;
+    }
+    if (unorderedMapIndex.find(inputWord) == unorderedMapIndex.end()) {     //if word is not in index
+        cout << "'" << inputWord << "' not found in index!" << endl;
+    }
+    else {
+        cout << "************************************************" << endl;
+        //print word, number of instances, and lines found on
+        cout << "\n'" << inputWord << "' was found " << unorderedMapIndex[inputWord].size() << " time(s)." << endl;
+        cout << "Found on lines: ";
+        for (auto i: unorderedMapIndex[inputWord]) {
+            cout << i << " ";
+        }
+    }
+    cout << "\n\n************************************************" << endl;
+
+    /* ======TIMES FOR SEARCH (separate so no double printing of line numbers)====== */
+    auto startSearch1 = chrono::high_resolution_clock::now();
+    indexMap.find(inputWord);
+    auto stopSearch1 = chrono::high_resolution_clock::now();
+    auto durationSearch1 = chrono::duration_cast<chrono::nanoseconds>(stopSearch1 - startSearch1);
+    cout << "\nTIME FOR MAP SEARCH:           " << durationSearch1.count() << " nanoseconds" << endl;
+
+    auto startSearch2 = chrono::high_resolution_clock::now();
+    unorderedMapIndex.find(inputWord);
+    auto stopSearch2 = chrono::high_resolution_clock::now();
+    auto durationSearch2 = chrono::duration_cast<chrono::nanoseconds>(stopSearch2 - startSearch2);
+    cout << "TIME FOR UNORDERED_MAP SEARCH: " << durationSearch2.count() << " nanoseconds" << endl;
+
+    cout << "\n************************************************" << endl;
+
+    //yay done :)
     return 0;
 }
