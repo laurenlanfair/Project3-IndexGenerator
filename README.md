@@ -2,7 +2,7 @@
 
 This is our Automatic Index Generator. 
 
-Both indexes will automatically be created:  
+Both indexes will automatically be created and saved to src file:  
   -MapIndex.txt   
   -UnorderedMapIndex.txt 
   
