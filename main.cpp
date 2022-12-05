@@ -107,7 +107,7 @@ int main()
 
     /*_CREATE FILE FROM MAP_*/
     ofstream mapFile;
-    mapFile.open("Output/MapIndex.txt");                //print title, author, word count, and unique word count
+    mapFile.open("src/MapIndex.txt");                //print title, author, word count, and unique word count
     mapFile << "TITLE: " << title << "\n";
     mapFile << "AUTHOR: " << author << "\n";
     mapFile << "WORD COUNT: " << words.size() << "\n";
@@ -153,7 +153,7 @@ int main()
 
     /*_CREATE FILE FROM UNORDERED MAP_*/
     ofstream unorderedMapFile;
-    unorderedMapFile.open("Output/UnorderedMapIndex.txt");  //print title, author, word count, and unique word count
+    unorderedMapFile.open("src/UnorderedMapIndex.txt");  //print title, author, word count, and unique word count
     unorderedMapFile << "TITLE: " << title << "\n";
     unorderedMapFile << "AUTHOR: " << author << "\n";
     unorderedMapFile << "WORD COUNT: " << words.size() << "\n";
@@ -190,7 +190,7 @@ int main()
 
     /* ===============END OF FILE CREATIONS=============== */
 
-    cout << "Files created in Output folder: " << endl;                       //display files created
+    cout << "Files created in src folder: " << endl;                       //display files created
     cout << "       'MapIndex.txt'\n"
             "       'UnorderedMapIndex.txt'" << endl;
     cout << "************************************************" << endl;
