@@ -196,7 +196,7 @@ int main()
     cout << "************************************************" << endl;
 
     //print durations for creation of each file
-    cout << "\nTIME FOR MAPINDEX CREATION:           " << duration.count() << " nanoseconds" << endl;
+    cout << "\nTIME FOR MAPINDEX CREATION:          " << duration.count() << " nanoseconds" << endl;
     cout << "TIME FOR UNORDEREDMAPINDEX CREATION: " << duration2.count() << " nanoseconds" << endl;
     cout << "\n************************************************" << endl;
 
